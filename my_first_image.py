@@ -17,8 +17,10 @@ def show_rgb_image(image, title='Image'):
 def import_image(image_file):
    return plt.imread(image_file)
 
-def flipImageHorizonal(image):
-   return np.fliplr(image)
+def flip_ops(image, direction=None):
+   selection = {"up": np.flipud, "horizantal": np.fliplr}
+   chosen = selection[direction]
+   return chosen(image)
 
 def imageSize(image):
     return image.size
@@ -26,17 +28,10 @@ def imageSize(image):
 def imageShape(image):
     return image.shape
 
-def tune_rgb(image, rgb=None):
-    if rgb is None:
-        rgb ={"r":1,"g":1, "b":1}
-    tuned = image.copy()
+def tune_rgb(image, rgb):
+    return image[:, :, rgb]
 
-    if rgb["r"] == 0:
-        tuned[:, :, 0] = 0
-
-    if rgb["g"] == 0:
-        tuned[:, :, 1] = 0
-    if rgb["b"] == 0:
-        tuned[:, :, 2] = 0
-
-    return tuned
+def show_histogram(image, title="Title", bins=256):
+    plt.hist(image.ravel(), bins)
+    plt.title(title)
+    plt.show()
