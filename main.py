@@ -1,5 +1,9 @@
-import image_utils as img
+import numpy as np
 
+from skimage import data, exposure, morphology
+from skimage.transform import rescale
+
+import image_utils as img
 
 def main():
 
