@@ -1,4 +1,4 @@
-import my_first_image as img
+import image_utils as img
 
 
 def main():
@@ -64,24 +64,24 @@ def main():
 
     # img.rotate_image(img3, 90)
     # img.rescale_imag(img3, 1/4)print(type(img3))
-    print(img3.shape)
+    scaled_one_quarter = img.rescale(img3, 1 / 4, channel_axis=-1)
+    # img.show_image(img.rescale(img3, 1 / 4, channel_axis=-1), "Really Charles!")
 
-    scaled = img.rescale(img3, 1 / 4, channel_axis=-1)
+    scaled_one_thirtith = img.rescale(img3, 1 / 30, channel_axis=-1)
+    # img.show_rgb_image(scaled, "Scaled down down!")
 
-    print(type(scaled))
-    print(scaled.shape)
+    img.plot_comparison(
+        scaled_one_quarter, scaled_one_thirtith, "Image scale comparision"
+    )
 
-    img.show_image(img.rescale(img3, 1 / 4, channel_axis=-1), "Really Charles!")
-    scaled = img.rescale(img3, 1 / 30, channel_axis=-1)
+    # Resize image
+    a = img.resize_image(img3, (1150, 900))
+    b = img.resize_image(img3, (800, 600), 50)
+    img.plot_comparison(a, b, "Resized with dimension")
 
-    print(scaled.min())
-    print(scaled.max())
+    # Applying Adaptive qualizaiton to Coffee image
 
-    img.show_rgb_image(scaled, "Scaled down down!")
-    img.resize_image(img3, (1150, 900))
-    img.resize_image(img3, (800, 600), 50)
-
-    # Load the image
+    # Load coffee image
     original_image = img.data.coffee()
 
     # Apply the adaptive equalization on the original image
@@ -90,19 +90,23 @@ def main():
     )
 
     # Compare the original image to the equalized
-    img.show_image(original_image)
-    img.show_image(adapthist_eq_image, "#ImageProcessingDatacamp")
+    img.plot_comparison(original_image, adapthist_eq_image, "#ImageProcessingDatacamp")
 
     # Image Processing Morphology
-    # Imageg distorted: Try to remove imperfection, account for form and strucutue in image 
+    # Imageg distorted: Try to remove imperfection, account for form and strucutue in image
     # Dilated: add to image(Pixels)
     # Errousion remove from image
-    #Applying erosion: binary_erosion function
-    selem = img.rectangle(12, 6)
-    image_horse = img.data.horse
-    erouded_image = img.morphology.binary_erosion(image_horse, selem=selem)
-    img.plot_comparison(image_horse, erouded_image, 'Erosion')
+    # Applying erosion: binary_erosion function
+    footprint = img.morphology.footprint_rectangle((12, 6))
+    image_horse = img.data.horse()
+    image_horse = img.np.logical_not(image_horse)
+    erouded_image = img.morphology.erosion(image_horse, footprint=footprint)
+    print(type(image_horse))
+    print(image_horse.dtype)
+    print(img.np.unique(image_horse))
+    print(image_horse[0, 0])
+    img.plot_comparison(image_horse, erouded_image, "Erosion")
 
-
+    
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-from skimage import data, color, exposure
+from skimage import data, color, exposure, morphology
 from skimage.filters import (
     try_all_threshold,
     threshold_local,
@@ -30,16 +30,16 @@ def import_image(image_file):
 
 
 def flip_ops(image, direction=None):
-    selection = {"up": np.flipud, "horizantal": np.fliplr}
+    selection = {"up": np.flipud, "horizontal": np.fliplr}
     chosen = selection[direction]
     return chosen(image)
 
 
-def imageSize(image):
+def image_size(image):
     return image.size
 
 
-def imageShape(image):
+def image_shape(image):
     return image.shape
 
 
@@ -53,42 +53,24 @@ def show_histogram(image, title="Title", bins=256):
     plt.show()
 
 
-def plot_comparison(orginal, filtered, title_filtered):
+def plot_comparison(original_image, filtered_image, title_filtered):
 
     fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(8, 6), sharex=True, sharey=True)
 
-    ax1.imshow(orginal, cmap=plt.cm.gray)
-    ax1.set_title("orginal")
+    ax1.imshow(original_image, cmap=plt.cm.gray)
+    ax1.set_title("original")
     ax1.axis("off")
-    ax2.imshow(filtered, cmap=plt.cm.gray)
+    ax2.imshow(filtered_image, cmap=plt.cm.gray)
     ax2.set_title(title_filtered)
     ax2.axis("off")
     plt.show()
 
 
 def rotate_image(image, degree: int):
+    return rotate(image, degree)
 
-    original = image
-    image_rotated = rotate(image, degree)
-    show_image(original, "Orginal")
-    rotated_by = f"""Rotated by {degree} degrees anticlockwise."""
-    show_image(image_rotated, rotated_by)
-
-
-def rescale_imag(image, scale, channel_axis=-1):
-
-    original_image = image
-    image_rescaled = rescale(image, scale, channel_axis=channel_axis)
-    show_image(original_image, "Orginal")
-    show_image(image_rescaled, "Rescaled Image")
-
-
-# def resize_image (image, size:tuple[int, int]):
-
-#     # Using tuple unpacking
-#     height, width = size
-#     resize_image = resize(image, (height, width))
-#     show_image(resize_image, f"""Image resized""" )
+def rescale_image(image, scale, channel_axis=-1):
+    return rescale(image, scale, channel_axis=channel_axis)
 
 
 def resize_image(image, size: tuple[int, int], x_smaller=None, antialias=False):
@@ -96,9 +78,9 @@ def resize_image(image, size: tuple[int, int], x_smaller=None, antialias=False):
     height, width = size
     if x_smaller is None:
         resized_image = resize(image, (height, width), anti_aliasing=antialias)
-        show_image(resized_image, "Image resized")
     else:
         height = int(image.shape[0] / x_smaller)
         width = int(image.shape[1] / x_smaller)
         resized_image = resize(image, (height, width), anti_aliasing=antialias)
-        show_image(resized_image, f"""Image height = {height}, width = {width}""")
+
+    return resized_image
