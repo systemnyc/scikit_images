@@ -1,10 +1,3 @@
-# from my_first_image import (
-#      show_image,
-#      show_rgb_image,
-#      import_image,
-#      tune_rgb,
-#      flip_ops,
-#      show_histogram)
 import my_first_image as img
 
 
@@ -92,12 +85,24 @@ def main():
     original_image = img.data.coffee()
 
     # Apply the adaptive equalization on the original image
-    adapthist_eq_image = img.exposure.equalize_adapthist(original_image, clip_limit=0.03)
+    adapthist_eq_image = img.exposure.equalize_adapthist(
+        original_image, clip_limit=0.03
+    )
 
     # Compare the original image to the equalized
     img.show_image(original_image)
-    img.show_image(adapthist_eq_image, '#ImageProcessingDatacamp')
+    img.show_image(adapthist_eq_image, "#ImageProcessingDatacamp")
 
-    
+    # Image Processing Morphology
+    # Imageg distorted: Try to remove imperfection, account for form and strucutue in image 
+    # Dilated: add to image(Pixels)
+    # Errousion remove from image
+    #Applying erosion: binary_erosion function
+    selem = img.rectangle(12, 6)
+    image_horse = img.data.horse
+    erouded_image = img.morphology.binary_erosion(image_horse, selem=selem)
+    img.plot_comparison(image_horse, erouded_image, 'Erosion')
+
+
 if __name__ == "__main__":
     main()
