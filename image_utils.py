@@ -47,6 +47,14 @@ def tune_rgb(image, rgb):
     return image[:, :, rgb]
 
 
+def get_rgb_channels(image):
+    red_channel = image[:, :, 0]
+    green_channel = image[:, :, 1]
+    blue_channel = image[:, :, 2]
+
+    return red_channel, green_channel, blue_channel
+
+
 def show_histogram(image, title="Title", bins=256):
     plt.hist(image.ravel(), bins)
     plt.title(title)
@@ -66,8 +74,20 @@ def plot_comparison(original_image, filtered_image, title_filtered):
     plt.show()
 
 
+def show_image_contours(original_image, contours):
+
+    plt.imshow(original_image, cmap="gray")
+
+    for contour in contours:
+        plt.plot(contour[:, 1], contour[:, 0])
+
+    plt.axis("off")
+    plt.show()
+
+
 def rotate_image(image, degree: int):
     return rotate(image, degree)
+
 
 def rescale_image(image, scale, channel_axis=-1):
     return rescale(image, scale, channel_axis=channel_axis)
@@ -84,3 +104,23 @@ def resize_image(image, size: tuple[int, int], x_smaller=None, antialias=False):
         resized_image = resize(image, (height, width), anti_aliasing=antialias)
 
     return resized_image
+
+
+def get_contour(image, contour, num_of_contour):
+
+    test_contour = contour[num_of_contour]
+
+    plt.imshow(image, cmap="gray")
+
+    plt.plot(test_contour[:, 1], test_contour[:, 0])
+
+    plt.show()
+
+
+def show_image_with_corners(image, coords, title="Corners detected"):
+
+    plt.imshow(image, interpolation="nearest", cmap="gray")
+    plt.title(title)
+    plt.plot(coords[:, 1], coords[:, 0], "+r", markersize=15)
+    plt.axis("off")
+    plt.show()

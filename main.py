@@ -1,116 +1,541 @@
 import numpy as np
-
-from skimage import data, exposure, morphology
-from skimage.transform import rescale
-
+from skimage import data, color, exposure, morphology, measure
+from skimage.filters import (
+    threshold_local,
+    threshold_otsu,
+    gaussian,
+    sobel
+)
+from skimage.restoration import inpaint, denoise_tv_chambolle, denoise_bilateral
+from skimage.transform import rotate, rescale
+from skimage.util import random_noise
+from skimage.segmentation import slic
+from skimage import io
+from skimage.feature import (
+    canny,
+    corner_harris,
+    corner_peaks,
+    Cascade
+)
+import matplotlib.pyplot as plt
 import image_utils as img
+
 
 def main():
 
-    # # # Images from datae
-    # # rocket = data.rocket()
-    # # # Convert rgb to grayscale
-    # # grayscale = color.rgb2gray(rocket)
-    # # # Show orginal Image
-    # # show_image(rocket, 'Original RGB image')
-    # # # Show Grayscale image
-    # # show_image(grayscale, "Grayscale")
+    # # -------------------------
+    # # RGB to grayscale
+    # # -------------------------
 
-    # # Import a image and get its type
-    # # lil_girl = plt.imread(r"images\little_girl.jpg")
-    #     lil_girl = img.import_image(r"images\little_girl.jpg")
-    #     # print(type(lil_girl))
-    #     # print(lil_girl.shape)
-    #     # print(lil_girl.size)
-    #     # Flip the image in the left direction
-    #     img.show_image(lil_girl, "Original")
-    #     # horizontally_flipped = flipImageHorizonal(lil_girl)
-    #     #show_image(horizontally_flipped, "Ho-flipped")
-    #     img.show_image(img.flip_ops(lil_girl, "horizantal"), "Horizontial Image")
-    #     red_image = img.tune_rgb(lil_girl, 0)
-    #     # red_image = lil_girl.copy()
-    #     # red_image[:, :,1] = 0
-    #     # red_image[:, :,2] = 0
-    #     # plt.imshow(red)sciki
-    #     # plt.show()
-    #     img.show_rgb_image(red_image, "Red Channel")
-    #     img.show_histogram(lil_girl, "Original Image")
+    # rocket = data.rocket()
 
-    #     lady_red = img.import_image(r"images/lady_red.jpg")
-    #     get_red_channel = img.tune_rgb(lady_red, 2)
-    #     img.show_histogram(get_red_channel,"red channel")
+    # grayscale = color.rgb2gray(rocket)
 
-    #     # Thresholding
-    #     lady_image_gray = img.color.rgb2gray(lady_red)
+    # img.show_image(rocket, "Original RGB image")
+    # img.show_image(grayscale, "Grayscale")
 
-    #     thresh = img.threshold_otsu(lady_image_gray)
-    #     two_tone_image = lady_image_gray > thresh
-    #     img.show_image(two_tone_image, " Two Tone Image")
+    # # -------------------------
+    # # Import and flip image
+    # # -------------------------
 
-    #     block_size = 15
-    #     local_threshold = img.threshold_local(lady_image_gray, block_size, offset=10)
-    #     binary_local = lady_image_gray  > local_threshold
-    #     img.show_image(binary_local, "Local Thresholding")
+    # lil_girl = img.import_image(
+    #     r"images\little_girl.jpg"
+    # )
 
-    img3 = img.import_image(r"images\PXL_20220112_200237532.jpg")
-    # # Apply edge dectection filter
-    # gaussian_image = img.gaussian(img3,channel_axis=2)
-    # img.plot_comparison(img3, gaussian_image, "Blurred with love")
+    # print(type(lil_girl))
+    # print(lil_girl.shape)
+    # print(lil_girl.size)
 
-    # img3_gray = img.color.rgb2gray(img3)
-    # # obtain the equalized image
-    # image_eq = img.exposure.equalize_hist(img3_gray)
-    # image_eq_adapt = img.exposure.equalize_adapthist(img3_gray, clip_limit=0.03)
-    # # Show the orginal image
-    # img.show_image(img3_gray, 'original')
-    # img.show_image(image_eq,"Histogram equalized")
-    # img.show_image(image_eq_adapt, "Hist Adapthist")
+    # img.show_image(lil_girl, "Original")
 
-    # img.rotate_image(img3, 90)
-    # img.rescale_imag(img3, 1/4)print(type(img3))
-    scaled_one_quarter = img.rescale(img3, 1 / 4, channel_axis=-1)
-    # img.show_image(img.rescale(img3, 1 / 4, channel_axis=-1), "Really Charles!")
+    # horizontally_flipped = img.flip_ops(
+    #     lil_girl,
+    #     "horizontal"
+    # )
 
-    scaled_one_thirtith = img.rescale(img3, 1 / 30, channel_axis=-1)
-    # img.show_rgb_image(scaled, "Scaled down down!")
+    # img.show_image(
+    #     horizontally_flipped,
+    #     "Horizontal Image"
+    # )
 
-    img.plot_comparison(
-        scaled_one_quarter, scaled_one_thirtith, "Image scale comparision"
+    # # -------------------------
+    # # RGB channels
+    # # -------------------------
+
+    # red_image = lil_girl.copy()
+
+    # red_image[:, :, 1] = 0
+    # red_image[:, :, 2] = 0
+
+    # img.show_rgb_image(
+    #     red_image,
+    #     "Red Channel"
+    # )
+
+    # img.show_histogram(
+    #     lil_girl,
+    #     "Original Image"
+    # )
+
+    # lady_red = img.import_image(
+    #     r"images\lady_red.jpg"
+    # )
+
+    # get_red_channel = img.tune_rgb(
+    #     lady_red,
+    #     2
+    # )
+
+    # img.show_histogram(
+    #     get_red_channel,
+    #     "Red Channel"
+    # )
+
+    # # -------------------------
+    # # Thresholding
+    # # -------------------------
+
+    # lady_image_gray = color.rgb2gray(
+    #     lady_red
+    # )
+
+    # thresh = threshold_otsu(
+    #     lady_image_gray
+    # )
+
+    # two_tone_image = (
+    #     lady_image_gray > thresh
+    # )
+
+    # img.show_image(
+    #     two_tone_image,
+    #     "Two Tone Image"
+    # )
+
+    # block_size = 35
+
+    # local_threshold = threshold_local(
+    #     lady_image_gray,
+    #     block_size,
+    #     offset=0.09
+    # )
+
+    # binary_local = (
+    #     lady_image_gray > local_threshold
+    # )
+
+    # img.show_image(
+    #     binary_local,
+    #     "Local Thresholding"
+    # )
+
+    # # -------------------------
+    # # Gaussian filter
+    # # -------------------------
+
+    img3 = img.import_image(r"images\me.jpg")
+
+    # gaussian_image = gaussian(
+    #     img3,
+    #     channel_axis=-1
+    # )
+
+    # img.plot_comparison(
+    #     img3,
+    #     gaussian_image,
+    #     "Blurred with love"
+    # )
+
+    # # -------------------------
+    # # Histogram equalization
+    # # -------------------------
+
+    # img3_gray = color.rgb2gray(img3)
+
+    # image_eq = exposure.equalize_hist(
+    #     img3_gray
+    # )
+
+    # image_eq_adapt = exposure.equalize_adapthist(
+    #     img3_gray,
+    #     clip_limit=0.03
+    # )
+
+    # img.show_image(
+    #     img3_gray,
+    #     "Original"
+    # )
+
+    # img.show_image(
+    #     image_eq,
+    #     "Histogram Equalized"
+    # )
+
+    # img.show_image(
+    #     image_eq_adapt,
+    #     "Adaptive Histogram Equalized"
+    # )
+
+    # # -------------------------
+    # # Rotation
+    # # -------------------------
+
+    # rotated_image = rotate(
+    #     img3,
+    #     90
+    # )
+
+    # img.show_rgb_image(
+    #     rotated_image,
+    #     "Rotated 90 Degrees"
+    # )
+
+    # # -------------------------
+    # # Rescaling
+    # # -------------------------
+
+    # scaled_one_quarter = rescale(
+    #     img3,
+    #     1 / 4,
+    #     channel_axis=-1
+    # )
+
+    # scaled_one_thirtieth = rescale(
+    #     img3,
+    #     1 / 30,
+    #     channel_axis=-1
+    # )
+
+    # img.show_rgb_image(
+    #     scaled_one_thirtieth,
+    #     "Scaled Down"
+    # )
+
+    # img.plot_comparison(
+    #     scaled_one_quarter,
+    #     scaled_one_thirtieth,
+    #     "Image Scale Comparison"
+    # )
+
+    # # -------------------------
+    # # Custom resize function
+    # # -------------------------
+
+    # resized_a = img.resize_image(
+    #     img3,
+    #     (1150, 900)
+    # )
+
+    # resized_b = img.resize_image(
+    #     img3,
+    #     (800, 600),
+    #     50
+    # )
+
+    # img.plot_comparison(
+    #     resized_a,
+    #     resized_b,
+    #     "Resized Image Comparison"
+    # )
+
+    # # -------------------------
+    # # Adaptive equalization
+    # # -------------------------
+
+    # original_image = data.coffee()
+
+    # adapthist_eq_image = exposure.equalize_adapthist(
+    #     original_image,
+    #     clip_limit=0.03
+    # )
+
+    # img.plot_comparison(
+    #     original_image,
+    #     adapthist_eq_image,
+    #     "#ImageProcessingDatacamp"
+    # )
+
+    # # -------------------------
+    # # Morphology - Erosion
+    # # -------------------------
+
+    # image_horse = data.horse()
+
+    # # Horse is False, background is True.
+    # # Invert so horse becomes foreground.
+    # image_horse = np.logical_not(
+    #     image_horse
+    # )
+
+    # footprint = morphology.footprint_rectangle(
+    #     (12, 6)
+    # )
+
+    # eroded_image = morphology.erosion(
+    #     image_horse,
+    #     footprint=footprint
+    # )
+
+    # img.plot_comparison(
+    #     image_horse,
+    #     eroded_image,
+    #     "Erosion"
+    # )
+
+    # # ----------------------
+    # # Morphology Dilatation
+    # # ----------------------
+
+    # dilated_image = morphology.dilation(
+    #     image_horse
+    # )
+
+    # img.plot_comparison(
+    #     image_horse,
+    #     dilated_image,
+    #     "Dialated Horse"
+    # )
+
+    # # -----------------------------
+    # # Image Restruction inpainting
+    # # -----------------------------
+
+    # defect_image = plt.imread(r"images\damaged_astronaut.png")
+
+    # mask = np.zeros(defect_image.shape[:-1])
+
+    # mask[110:250, 160:220] = 1
+
+    # restored_image = inpaint.inpaint_biharmonic(
+    #     defect_image,
+    #     mask,
+    #     channel_axis = -1
+    # )
+    # img.show_image(restored_image, "This image is repaired")
+
+    # # ----------------------------
+    # # Image Noise
+    # # ----------------------------
+
+    # # Add noise to image
+    # noise_image = random_noise(img3)
+    # img.show_image(noise_image, "Image with noise")
+
+    # # TV_Chambolle
+    # denoised_image  = denoise_tv_chambolle(
+    #     noise_image,
+    #     weight=0.1,
+    #     channel_axis=-1
+    # )
+
+    # img.show_image(denoised_image, "Image Denoised")
+
+    # # Apply Bilatera filter denoising
+
+    # denoised_bilateral = denoise_bilateral(noise_image, channel_axis=-1)
+    # img.show_image(denoised_bilateral, "Denoised Bilateral")
+
+    # ----------------
+    # Segmentation
+    # ----------------
+
+    """ 
+        Unsupervised segmentation: attempt to subdivide automatically with no prior knowledge
+        Simple Linear Interative Clustering (SLIC)
+    """
+
+    # Create the lables or segments
+    # segments = slic(img3)
+    # Put lables ontop of the original image to compare
+    # segmented_image = color.label2rgb(segments, img3, kind='avg')
+
+    # img.show_image(img3, "Original Image")
+    # img.show_image(segmented_image, "Segmented Image")
+
+    # """ Achive more segmentes using n_segments """
+    # segmented_n_segments = slic(img3, n_segments=400)
+    # segmented_image = color.label2rgb(segmented_n_segments, img3, kind='avg')
+
+    # img.show_image(segmented_n_segments, "Image with specified segments")
+
+    # # ------------------------------
+    # # Contures using scikit-image
+    # # ------------------------------
+
+    # image_2_gray = color.rgb2gray(img3)
+
+    # # img.show_image(image_2_gray, "Gray Image")
+
+    # # Make the image black and white
+    # thresh = threshold_otsu(image_2_gray)
+
+    # # Apply thresholding
+    # threasholding = image_2_gray > thresh
+
+    # # find contours
+    # contours = measure.find_contours(threasholding, 0.8)
+
+    # img.show_image_contours(img3, contours)
+
+    # # ------------------------
+    # # Countining Coins
+    # #-------------------------
+
+    # # Get coin image
+    # coin_image2gray = data.coins()
+
+    # # # Apply thresholding
+    # # coin_thresh = threshold_otsu(coin_image2gray)
+
+    # # # Get threshold
+    # # coin_thresholding = coin_image2gray > coin_thresh
+
+    # # Detect edges 
+    # coin_edges = sobel(coin_image2gray)
+    # img.show_image(
+    #         coin_edges,
+    #         "Sobel edges"
+    #     )
+
+    # edge_thresh = threshold_otsu(coin_edges)
+
+    # coin_edges_bw = coin_edges > edge_thresh
+
+    # # Find Contoursz
+    # get_coin_contours = measure.find_contours(
+    #     coin_edges, 
+    #     0.8
+    # )
+
+    # # Create list with the shape of each contour
+    # shape_contours = [
+    #     cnt.shape[0] for cnt in get_coin_contours]
+
+    # # read your contour list
+    # print(shape_contours, end="\n\n")
+
+    # # associate a number with an actual contour
+    # for i, contour in enumerate(get_coin_contours):
+    #     print(i, contour.shape[0])
+
+    # # Isolate a contour and plot it over the image 
+    # # img.get_contour(coin_image2gray, get_coin_contours, 51)
+    # # img.get_contour(coin_image2gray, get_coin_contours, 5)
+    # # img.get_contour(coin_image2gray, get_coin_contours, 186)
+    # # img.get_contour(coin_image2gray, get_coin_contours, 331)
+    # # img.get_contour(coin_image2gray, get_coin_contours, 353)
+    # # img.get_contour(coin_image2gray, get_coin_contours, 184)
+    # # img.get_contour(coin_image2gray, get_coin_contours, 339)
+    # # img.get_contour(coin_image2gray, get_coin_contours, 341)
+    # # img.get_contour(coin_image2gray, get_coin_contours, 72)
+
+    # # Print the comparision 
+    # # print(51, get_coin_contours[51].shape[0])
+    # # print(331, get_coin_contours[331].shape[0])
+    # # print(346, get_coin_contours[346].shape[0])
+    # # print(186, get_coin_contours[186].shape[0])
+
+    # coin_contours = []
+
+    # for contour in get_coin_contours:
+
+    #     # Number of points in contour
+    #     points = contour.shape[0]
+
+    #     # Get contour boundaries
+    #     x_min = contour[:, 1].min()
+    #     x_max = contour[:, 1].max()
+
+    #     y_min = contour[:, 0].min()
+    #     y_max = contour[:, 0].max()
+
+    #     # Calculate width and height
+    #     width = x_max - x_min
+    #     height = y_max - y_min
+
+    #     # Compare width and height 
+    #     ratio = width /height
+
+    #     # DEBUG: print larger contours so we can inspect them
+    #     if points > 100:
+    #         print(
+    #             "points:", points,
+    #             "width:", round(width, 1),
+    #             "height:", round(height, 1),
+    #             "ratio:", round(ratio, 2)
+    #     )
+
+    #     # Keep contours that look coin-like
+    #     if(
+    #         points > 150 
+    #         and width > 20
+    #         and height > 20
+    #         and 0.8 < ratio < 1.2
+    #     ):
+    #         coin_contours.append(contour)
+ 
+    # img.show_image_contours(
+    #     coin_image2gray,
+    #     coin_contours
+    # )
+    # # # Set 50 as the maximum size of the coin shape 
+    # # max_coin_shape = 50
+
+    # # # Count coins in the contours excluding bigger coin size
+    # # coin_contours = [
+    # #     cnt for cnt in get_coin_contours 
+    # #     if np.shape(cnt)[0] < max_coin_shape]
+
+    # # # show all contours found 
+    # # img.show_image_contours(coin_image2gray, get_coin_contours)
+
+    # # # print the coin count 
+    # print("Number of coins: {}. ".format(len(coin_contours)))
+
+    # ------------------------------------
+    # Canny Edge detection from feature
+    # ------------------------------------
+
+    # fruit = plt.imread(r"images\toronjas.jpg")
+
+    # # Convert to grayscale
+    # fruit_2gray = color.rgb2gray(fruit)
+
+    # # Apply Canny dectector
+    # canny_edges= canny( fruit_2gray)
+    # img.show_image(canny_edges, "Canny Detector!")
+    # canny_edge_0_5 = canny( fruit_2gray, sigma=1.8)
+    # img.show_image(canny_edge_0_5 , "Canny Detector!")
+
+    # -----------------------------------------------------
+    # Corner Detection
+    #------------------------------------------------------
+
+    # japanese_gate = plt.imread(r"images\j_gate.jpg")
+    # j_graygate = color.rgb2gray(japanese_gate)
+    # measure_image= corner_harris(j_graygate)
+
+    # coords = corner_peaks(corner_harris(j_graygate), min_distance=15, threshold_rel=0.02)
+    # img.show_image(japanese_gate, "OG")
+    # img.show_image_with_corners(japanese_gate, coords)
+
+    # -----------------------------------
+    # Face Dectection 
+    # -----------------------------------
+    trained_file = data.lbp_frontal_face_cascade_filename()
+    detector = Cascade(trained_file)
+    detected = detector.detect_multi_scale(
+            img3,
+            1.2,
+            1,
+            (10, 10),
+            (200, 200),
+            4,
+            0.5
     )
 
-    # Resize image
-    a = img.resize_image(img3, (1150, 900))
-    b = img.resize_image(img3, (800, 600), 50)
-    img.plot_comparison(a, b, "Resized with dimension")
-
-    # Applying Adaptive qualizaiton to Coffee image
-
-    # Load coffee image
-    original_image = img.data.coffee()
-
-    # Apply the adaptive equalization on the original image
-    adapthist_eq_image = img.exposure.equalize_adapthist(
-        original_image, clip_limit=0.03
-    )
-
-    # Compare the original image to the equalized
-    img.plot_comparison(original_image, adapthist_eq_image, "#ImageProcessingDatacamp")
-
-    # Image Processing Morphology
-    # Imageg distorted: Try to remove imperfection, account for form and strucutue in image
-    # Dilated: add to image(Pixels)
-    # Errousion remove from image
-    # Applying erosion: binary_erosion function
-    footprint = img.morphology.footprint_rectangle((12, 6))
-    image_horse = img.data.horse()
-    image_horse = img.np.logical_not(image_horse)
-    erouded_image = img.morphology.erosion(image_horse, footprint=footprint)
-    print(type(image_horse))
-    print(image_horse.dtype)
-    print(img.np.unique(image_horse))
-    print(image_horse[0, 0])
-    img.plot_comparison(image_horse, erouded_image, "Erosion")
-
+    print(detected)
     
+
 if __name__ == "__main__":
     main()
