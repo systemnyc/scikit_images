@@ -7,7 +7,8 @@ from skimage.filters import (
     sobel,
 )
 from skimage.transform import rotate, rescale, resize
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+from  matplotlib import pyplot as plt, patches
 import numpy as np
 
 
@@ -124,3 +125,46 @@ def show_image_with_corners(image, coords, title="Corners detected"):
     plt.plot(coords[:, 1], coords[:, 0], "+r", markersize=15)
     plt.axis("off")
     plt.show()
+
+def show_detected_face(result, detected, title="face image"):
+    
+    plt.imshow(result)
+    img_desc = plt.gca()
+    plt.set_cmap('gray')
+    plt.title(title)
+    plt.axis('off')
+
+    for patch in detected:
+        img_desc.add_patch(
+            patches.Rectangle(
+                (patch['c'], patch['r']),
+                patch['width'],
+                patch['height'],
+                fill=False, color='r',linewidth=2)
+            )
+    plt.show()
+
+
+def getFace(image, d):
+    """Extracts the face rectangle from the image using the coordinates of the detected."""
+
+    x, y = d['r'], d['c']
+
+    width = d['r'] + d['width']
+    height = d['c'] + d['height']
+
+    face = image[x:width, y:height]
+
+    return face
+
+
+def mergeBlurryFace(original, gaussian_image, d):
+
+    x, y = d['r'], d['c']
+
+    width = d['r'] + d['width']
+    height = d['c'] + d['height']
+
+    original[x:width, y:height] = gaussian_image
+
+    return original
